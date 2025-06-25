@@ -6,6 +6,7 @@ from operator import getitem
 from datetime import datetime
 from logger import setup_logging
 from utils import read_json, write_json
+import wandb
 
 
 class ConfigParser:
@@ -18,23 +19,37 @@ class ConfigParser:
         :param modification: Dict keychain:value, specifying position values to be replaced from config dict.
         :param run_id: Unique Identifier for training processes. Used to save checkpoints and training log. Timestamp is being used as default
         """
+
         # load config file and apply modification
         self._config = _update_config(config, modification)
         self.resume = resume
 
+        if self.config.get("wandb", False):
+            # CNNを使用するとき
+            params = {
+                "name": self.config.get('name', "GSP"),
+                "arch": self.config.get('arch').get("type"),
+                "is_positioning": self.config.get('arch').get("args").get("is_positioning"),
+                "task_name": self.config.get('arch').get("args").get("task_name"),
+                ""
+            }
+            wandb.init(project=self.config.get('name', "GSP"), config=params)
+            self.config["trainer"]["save_dir"] += "/{}/".format(wandb.run.name)
+
         # set save_dir where trained model and log will be saved.
         save_dir = Path(self.config['trainer']['save_dir'])
+        print("save to {}".format(save_dir))
 
         exper_name = self.config['name']
         if run_id is None: # use timestamp as default run-id
             run_id = datetime.now().strftime(r'%m%d_%H%M%S')
-        self._save_dir = save_dir / 'models' / exper_name / run_id
-        self._log_dir = save_dir / 'log' / exper_name / run_id
+        self._save_dir = save_dir / 'models' 
+        self._log_dir = save_dir / 'log' 
 
         # make directory for saving checkpoints and log.
         exist_ok = run_id == ''
-        self.save_dir.mkdir(parents=True, exist_ok=exist_ok)
-        self.log_dir.mkdir(parents=True, exist_ok=exist_ok)
+        self.save_dir.mkdir(parents=True, exist_ok=True)
+        self.log_dir.mkdir(parents=True, exist_ok=True)
 
         # save updated config file to the checkpoint dir
         write_json(self.config, self.save_dir / 'config.json')

@@ -10,6 +10,8 @@ from parse_config import ConfigParser
 from trainer import Trainer
 from utils import prepare_device
 
+import wandb
+
 
 # fix random seeds for reproducibility
 SEED = 123
@@ -70,4 +72,8 @@ if __name__ == '__main__':
         CustomArgs(['--bs', '--batch_size'], type=int, target='data_loader;args;batch_size')
     ]
     config = ConfigParser.from_args(args, options)
+
     main(config)
+
+    if config.config.get("wandb", False):
+        wandb.finish() # wandbセッションを終了

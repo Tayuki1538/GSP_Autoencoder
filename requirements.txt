@@ -3,3 +3,6 @@ torchvision
 numpy
 tqdm
 tensorboard>=1.14
+pyroomacoustics==0.7.7
+pyspark
+wandb
