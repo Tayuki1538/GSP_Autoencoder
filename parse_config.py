@@ -8,7 +8,6 @@ from logger import setup_logging
 from utils import read_json, write_json
 import wandb
 
-
 class ConfigParser:
     def __init__(self, config, resume=None, modification=None, run_id=None):
         """
@@ -25,16 +24,7 @@ class ConfigParser:
         self.resume = resume
 
         if self.config.get("wandb", False):
-            # CNNを使用するとき
-            params = {
-                "name": self.config.get('name', "GSP"),
-                "arch": self.config.get('arch').get("type"),
-                "is_positioning": self.config.get('arch').get("args").get("is_positioning"),
-                "task_name": self.config.get('arch').get("args").get("task_name"),
-                ""
-            }
-            wandb.init(project=self.config.get('name', "GSP"), config=params)
-            self.config["trainer"]["save_dir"] += "/{}/".format(wandb.run.name)
+            self.init_wandb()
 
         # set save_dir where trained model and log will be saved.
         save_dir = Path(self.config['trainer']['save_dir'])
@@ -121,6 +111,17 @@ class ConfigParser:
         assert all([k not in module_args for k in kwargs]), 'Overwriting kwargs given in config file is not allowed'
         module_args.update(kwargs)
         return partial(getattr(module, module_name), *args, **module_args)
+    
+    def init_wandb(self):
+        # params = {
+        #     "name": self.config.get('name', "GSP"),
+        #     "arch": self.config.get('arch').get("type"),
+        #     "is_positioning": self.config.get('arch').get("args").get("is_positioning"),
+        #     "task_name": self.config.get('arch').get("args").get("task_name"),
+        #     ""
+        # }
+        wandb.init(project=self.config.get('name', "GSP"), config=self.config)
+        self.config["trainer"]["save_dir"] += "/{}/".format(wandb.run.name)
 
     def __getitem__(self, name):
         """Access items like ordinary dict."""

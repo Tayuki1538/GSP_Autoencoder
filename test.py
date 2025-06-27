@@ -7,18 +7,20 @@ import model.metric as module_metric
 import model.model as module_arch
 from parse_config import ConfigParser
 
+import matplotlib.pyplot as plt
+
 
 def main(config):
     logger = config.get_logger('test')
 
     # setup data_loader instances
     data_loader = getattr(module_data, config['data_loader']['type'])(
-        config['data_loader']['args']['data_dir'],
         batch_size=512,
         shuffle=False,
         validation_split=0.0,
-        training=False,
-        num_workers=2
+        num_workers=2,
+        pre_training=False,
+        normalization="standard"
     )
 
     # build model architecture
@@ -42,12 +44,18 @@ def main(config):
     model.eval()
 
     total_loss = 0.0
-    total_metrics = torch.zeros(len(metric_fns))
+    total_metrics = torch.zeros(len(metric_fns)).to(device)
 
     with torch.no_grad():
         for i, (data, target) in enumerate(tqdm(data_loader)):
             data, target = data.to(device), target.to(device)
             output = model(data)
+
+            if i==0:
+                plt.figure()
+                plt.plot(target[0].cpu().numpy().squeeze())
+                plt.plot(output[0].cpu().numpy().squeeze())
+                plt.savefig("/dbfs/mnt/mnt_wg3-1/mita/GSP_Autoencoder/plot.png")
 
             #
             # save sample images, or do something with output here

@@ -5,6 +5,7 @@
     "arch": {
         "type": "GSPCNNAEModel",
         "args": {
+            "z_dim": 256,
             "is_positioning": false
         }
     },
@@ -15,7 +16,8 @@
             "shuffle": true,
             "validation_split": 0.2,
             "num_workers": 2,
-            "pre_training": true
+            "pre_training": true,
+            "normalization": "standard"
         }
     },
     "optimizer": {
@@ -26,7 +28,7 @@
             "amsgrad": true
         }
     },
-    "loss": "mean_squared_error",
+    "loss": "l1_loss",
     "metrics": [
         "root_mean_squared_error"
     ],
@@ -52,7 +54,7 @@
         "verbosity": 2,
         
         "monitor": "min val_loss",
-        "early_stop": 100,
+        "early_stop": 30,
 
         "tensorboard": true
     },
