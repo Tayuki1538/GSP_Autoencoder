@@ -22,6 +22,7 @@ class ConfigParser:
         # load config file and apply modification
         self._config = _update_config(config, modification)
         self.resume = resume
+        self.config['trainer']['save_dir'] += "/{}/model".format(self.config["name"])
 
         if self.config.get("wandb", False):
             self.init_wandb()

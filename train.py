@@ -30,6 +30,29 @@ def main(config):
     # build model architecture, then print to console
     model = config.init_obj('arch', module_arch)
     logger.info(model)
+    print(model.state_dict().keys())
+
+    if config.config.get('arch').get('args').get("model_weighted_path") != None:
+        checkpoint = torch.load(config.config.get('arch').get('args').get("model_weighted_path"))
+        print("load model from: ", config.config.get('arch').get('args').get("model_weighted_path"))
+        checkpoint = checkpoint["state_dict"]
+        missing_keys, unexpected_keys = model.load_state_dict(checkpoint, strict=False)
+        print("Missing keys:", missing_keys)
+        print("Unexpected keys:", unexpected_keys)
+
+        if config.config.get('arch').get('args').get("frozen"):
+            print("❄️❄️Encoder is frozen❄️❄️")
+        
+            for param in model.parameters():
+                param.requires_grad = False
+
+            # 新しい全結合層は訓練可能にする
+            for param in model.transformer_encoder.parameters():
+                param.requires_grad = True
+            for param in model.fc11.parameters():
+                param.requires_grad = True
+            for param in model.fc12.parameters():
+                param.requires_grad = True
 
     # prepare for (multi-device) GPU training
     device, device_ids = prepare_device(config['n_gpu'])

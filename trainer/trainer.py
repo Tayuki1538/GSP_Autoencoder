@@ -44,6 +44,11 @@ class Trainer(BaseTrainer):
         for batch_idx, (data, target) in enumerate(self.data_loader):
             data, target = data.float().to(self.device), target.float().to(self.device)
 
+            # # 全ての要素が0または1であることを厳密にチェック(0/1分類のみ)
+            # print(target)
+            # assert (target >= 0).all() and (target <= 1).all(), "Target values must be 0 or 1"
+            # assert (target == 0).any() or (target == 1).any(), "Target should contain both 0 and 1 eventually"
+
             self.optimizer.zero_grad()
             output = self.model(data)
 
